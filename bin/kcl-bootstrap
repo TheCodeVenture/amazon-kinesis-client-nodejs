@@ -100,12 +100,16 @@ var MAX_HTTP_REDIRECT_FOLLOW = 3;
 
 function bootstrap() {
   var args = parseArguments();
-  downloadMavenPackages(MAVEN_PACKAGE_LIST, args.jarPath, function(err) {
+  downloadMavenPackages(MAVEN_PACKAGE_LIST, args.jarPath, function (err) {
     if (err) {
       errorExit(util.format('Unable to download MultiLangDaemon jar files from maven: %s', err));
     }
     startKinesisClientLibraryApplication(args);
   });
+}
+
+function createJavaHomeExecutablePath() {
+  return path.join(process.env.JAVA_HOME, 'bin', process.platform !== 'win32' ? 'java' : 'java.exe');
 }
 
 function parseArguments() {
@@ -119,8 +123,8 @@ function parseArguments() {
 
   var args = {
     'properties': program.properties,
-    'logConfiguration': program.logConfiguration ? program.logConfiguration: null,
-    'java': (program.java ? program.java : (process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : null)),
+    'logConfiguration': program.logConfiguration ? program.logConfiguration : null,
+    'java': (program.java ? program.java : (process.env.JAVA_HOME ? createJavaHomeExecutablePath() : null)),
     'jarPath': (program.jarPath ? program.jarPath : DEFAULT_JAR_PATH),
     'execute': program.execute
   };
@@ -147,14 +151,10 @@ function parseArguments() {
 }
 
 function startKinesisClientLibraryApplication(options) {
-  var classpath = '-cp ' + getClasspath(options).join(getPathDelimiter());
+  var classpath = getClasspath(options).join(getPathDelimiter());
   var java = options.java;
-  var propertiesFile = '--properties-file ' + options.properties;
-  var logConfiguration = '';
-  if (options.logConfiguration) {
-    logConfiguration = '--log-configuration ' + options.logConfiguration;
-  }
-  var args = [classpath, MULTI_LANG_DAEMON_CLASS, propertiesFile, logConfiguration];
+  var logConfiguration = options.logConfiguration ? ['--log-configuration', options.logConfiguration] : [];
+  var args = ['-cp', classpath, MULTI_LANG_DAEMON_CLASS, '--properties-file', options.properties, ...logConfiguration];
   var cmd = java + ' ' + args.join(' ');
 
   console.log("==========================================================");
@@ -184,7 +184,7 @@ function downloadMavenPackages(mavenPackages, destinationDirectory, callback) {
   var remainingPackages = mavenPackages.length;
   var callbackInvoked = false;
 
-  var downloadMavenPackageCallback = function(err, filePath) {
+  var downloadMavenPackageCallback = function (err, filePath) {
     remainingPackages = remainingPackages - 1;
     if (!callbackInvoked) {
       if (!err) {
@@ -198,13 +198,13 @@ function downloadMavenPackages(mavenPackages, destinationDirectory, callback) {
     }
   };
 
-  for (var i = 0 ; i < mavenPackages.length ; ++i) {
+  for (var i = 0; i < mavenPackages.length; ++i) {
     downloadMavenPackage(mavenPackages[i], destinationDirectory, downloadMavenPackageCallback);
   }
 }
 
 function downloadMavenPackage(mavenPackage, destinationDirectory, callback) {
-  process.nextTick(function() {
+  process.nextTick(function () {
     var mavenPackageUrlInfo = getMavenPackageUrlInfo(mavenPackage);
     var destinationFile = path.join(destinationDirectory, mavenPackageUrlInfo.fileName);
     if (fs.existsSync(destinationFile)) {
@@ -226,7 +226,7 @@ function httpDownloadFile(requestUrl, destinationFile, redirectCount, callback) 
     path: url.parse(requestUrl).path,
     agent: false
   };
-  var request = protocol.get(options, function(response) {
+  var request = protocol.get(options, function (response) {
     // Non-2XX response.
     if (response.statusCode > 300) {
       if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
@@ -243,7 +243,7 @@ function httpDownloadFile(requestUrl, destinationFile, redirectCount, callback) 
       response.pipe(destinationFileStream);
 
       var callbackInvoked = false;
-      var destinationFileStreamFinishCallback = function() {
+      var destinationFileStreamFinishCallback = function () {
         if (callbackInvoked) {
           return;
         }
@@ -254,7 +254,7 @@ function httpDownloadFile(requestUrl, destinationFile, redirectCount, callback) 
       // Older Node.js version may not support 'finish' event.
       destinationFileStream.on('close', destinationFileStreamFinishCallback);
     }
-  }).on('error', function(err) {
+  }).on('error', function (err) {
     fs.unlink(destinationFile);
     callback(err);
   });
@@ -295,7 +295,7 @@ function isDirectory(path) {
 function createDirectory(path) {
   try {
     fs.mkdirSync(path);
-  } catch(e) {
+  } catch (e) {
     if (e.code !== 'EEXIST') {
       throw e;
     }
