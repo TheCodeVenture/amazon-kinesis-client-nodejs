@@ -10,13 +10,13 @@ const APPID_DB = {
 };
 
 function DB() {
-  this.db = "empty";
+  this.client = "empty";
   this.log = logger().getLogger("mongoMange-DB");
 }
 
 DB.prototype.connect = function(uri, callback) {
   this.log.info(util.format("About to connect to DB"));
-  if (this.db != "empty") {
+  if (this.client != "empty") {
     callback();
     this.log.info("Already connected to database.");
   } else {
@@ -26,7 +26,7 @@ DB.prototype.connect = function(uri, callback) {
         _this.log.info(util.format("Error connecting to DB: %s", err.message));
         callback(err);
       } else {
-        _this.db = client;
+        _this.client = client;
         _this.log.info(util.format("Connected to database."));
         callback();
       }
@@ -36,21 +36,20 @@ DB.prototype.connect = function(uri, callback) {
 
 DB.prototype.close = function(callback) {
   this.log.info("Closing database");
-  this.db.close();
+  this.client.close();
   this.log.info("Closed database");
   callback();
 };
 
 DB.prototype.addDocument = function(coll, doc, callback) {
-  this.db = this.db.db(APPID_DB[doc.application]);
+  var db = this.client.db(APPID_DB[doc.application.app_id]);
+  var collection = db.collection(coll);
   var _this = this;
   collection.insertOne(doc, function(err, result) {
-    console.log("err", err);
     if (err) {
       _this.log.info(util.format("Error inserting document: %s", err.message));
       callback(err.message);
     } else {
-      console.log("result", result);
       _this.log.info(
         util.format("Inserted document into %s collection.", coll)
       );
