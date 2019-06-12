@@ -20,7 +20,10 @@
     "clean": "grunt clean",
     "test": "grunt test",
     "release": "grunt release",
-    "doc": "grunt jsdoc"
+    "doc": "grunt jsdoc",
+    "dev": "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.dev.properties",
+    "staging": "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.staging.properties",
+    "production": "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.production.properties"
   },
   "dependencies": {
     "commander": "~2.6.0",

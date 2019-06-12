@@ -7,7 +7,9 @@ var kcl = require("../../..");
 var logger = require("../../util/logger");
 var DB = require("./db.js");
 
-var mongodbConnectString = process.env.MONGO_URL;
+var NODE_ENV = process.env.NODE_ENV ? process.env.NODE_ENV : 'development'
+
+var mongodbConnectString = `${process.env.MONGO_URL}_${NODE_ENV.toUpperCase()}`;
 var mongodbCollection = "logdata";
 var database = new DB();
 
@@ -16,12 +18,12 @@ function recordProcessor() {
   var shardId;
 
   return {
-    initialize: function(initializeInput, completeCallback) {
+    initialize: function (initializeInput, completeCallback) {
       shardId = initializeInput.shardId;
 
       // WARNING – the connection string may contain the password and so consider removing logging for any production system
       log.info(util.format("About to connect to %s.", mongodbConnectString));
-      database.connect(mongodbConnectString, function(err) {
+      database.connect(mongodbConnectString, function (err) {
         log.info(
           util.format("Back from connecting to %s", mongodbConnectString)
         );
@@ -34,7 +36,7 @@ function recordProcessor() {
       });
     },
 
-    processRecords: function(processRecordsInput, completeCallback) {
+    processRecords: function (processRecordsInput, completeCallback) {
       log.info(util.format("In processRecords", mongodbConnectString));
 
       if (!processRecordsInput || !processRecordsInput.records) {
@@ -67,16 +69,16 @@ function recordProcessor() {
         objectToStore.metaData = {};
         objectToStore.metaData.mongoLabel = "Added by MongoMange";
         objectToStore.metaData.timeAdded = new Date();
-        database.addDocument(mongodbCollection, objectToStore, function(
+        database.addDocument(mongodbCollection, objectToStore, function (
           err
-        ) {});
+        ) { });
       }
       if (!sequenceNumber) {
         completeCallback();
         return;
       }
       // If checkpointing, completeCallback should only be called once checkpoint is complete.
-      processRecordsInput.checkpointer.checkpoint(sequenceNumber, function(
+      processRecordsInput.checkpointer.checkpoint(sequenceNumber, function (
         err,
         sequenceNumber
       ) {
@@ -91,15 +93,15 @@ function recordProcessor() {
       });
     },
 
-    shutdown: function(shutdownInput, completeCallback) {
+    shutdown: function (shutdownInput, completeCallback) {
       // Checkpoint should only be performed when shutdown reason is TERMINATE.
       if (shutdownInput.reason !== "TERMINATE") {
         completeCallback();
         return;
       }
       // Whenever checkpointing, completeCallback should only be invoked once checkpoint is complete.
-      database.close(function() {
-        shutdownInput.checkpointer.checkpoint(function(err) {
+      database.close(function () {
+        shutdownInput.checkpointer.checkpoint(function (err) {
           completeCallback();
         });
       });
