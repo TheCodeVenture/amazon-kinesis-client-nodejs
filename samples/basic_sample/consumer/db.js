@@ -26,6 +26,10 @@ DB.prototype.connect = function(uri, callback) {
         _this.log.info(util.format("Error connecting to DB: %s", err.message));
         callback(err);
       } else {
+        console.log(
+          "DATABASE_PER_ENV[process.env.NODE_ENV]",
+          DATABASE_PER_ENV[process.env.NODE_ENV]
+        );
         _this.db = client.db(DATABASE_PER_ENV[process.env.NODE_ENV]);
         _this.log.info(util.format("Connected to database."));
         callback();
