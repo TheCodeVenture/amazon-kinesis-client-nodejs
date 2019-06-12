@@ -1,6 +1,6 @@
 FROM amazonlinux:latest
 
-WORKDIR /
+WORKDIR /src
 
 RUN amazon-linux-extras install java-openjdk11
 RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -
