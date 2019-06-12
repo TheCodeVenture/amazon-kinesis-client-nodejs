@@ -4,7 +4,7 @@ services:
   worker:
     restart: always
     build: .
-    command: "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.properties"
+    command: npm run dev
     env_file: .env
     volumes:
       - .:/src

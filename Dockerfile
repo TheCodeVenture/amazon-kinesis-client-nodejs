@@ -12,4 +12,4 @@ RUN npm install
 
 COPY . .
 
-CMD "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.properties"
+CMD npm run dev
