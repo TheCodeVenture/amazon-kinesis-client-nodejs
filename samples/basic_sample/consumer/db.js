@@ -3,20 +3,20 @@ var assert = require("assert");
 var logger = require("../../util/logger");
 var util = require("util");
 
-const APPID_DB = {
-  f7ecc8b5db0045f4ad3d72ff8342f90d: "scorepad-database",
-  "42f9fa3f0bf34d00a6339a12f6b3d949": "scorepad-staging",
-  ce3610bc642748eea5efa6a599851ae3: "scorepad"
+const DATABASE_PER_ENV = {
+  development: "scorepad-database",
+  staging: "scorepad-staging",
+  production: "scorepad"
 };
 
 function DB() {
-  this.client = "empty";
+  this.db = "empty";
   this.log = logger().getLogger("mongoMange-DB");
 }
 
 DB.prototype.connect = function(uri, callback) {
   this.log.info(util.format("About to connect to DB"));
-  if (this.client != "empty") {
+  if (this.db != "empty") {
     callback();
     this.log.info("Already connected to database.");
   } else {
@@ -26,7 +26,7 @@ DB.prototype.connect = function(uri, callback) {
         _this.log.info(util.format("Error connecting to DB: %s", err.message));
         callback(err);
       } else {
-        _this.client = client;
+        _this.db = client.db(DATABASE_PER_ENV[process.env.NODE_ENV]);
         _this.log.info(util.format("Connected to database."));
         callback();
       }
@@ -36,20 +36,21 @@ DB.prototype.connect = function(uri, callback) {
 
 DB.prototype.close = function(callback) {
   this.log.info("Closing database");
-  this.client.close();
+  this.db.close();
   this.log.info("Closed database");
   callback();
 };
 
 DB.prototype.addDocument = function(coll, doc, callback) {
   var _this = this;
-  var db = _this.client.db(APPID_DB[doc.application.app_id]);
-  var collection = db.collection(coll);
+  var collection = _this.db.collection(coll);
   collection.insertOne(doc, function(err, result) {
+    console.log("err", err);
     if (err) {
       _this.log.info(util.format("Error inserting document: %s", err.message));
       callback(err.message);
     } else {
+      console.log("result", result);
       _this.log.info(
         util.format("Inserted document into %s collection.", coll)
       );
