@@ -1,0 +1,11 @@
+version: "2"
+
+services:
+  worker:
+    restart: always
+    build: .
+    command: "./bin/kcl-bootstrap --java /usr/bin/java -e -p ./samples/basic_sample/consumer/logging_consumer.properties"
+    env_file: .env
+    volumes:
+      - .:/src
+    network_mode: "scorepad-api_default"
