@@ -42,9 +42,9 @@ DB.prototype.close = function(callback) {
 };
 
 DB.prototype.addDocument = function(coll, doc, callback) {
-  var db = this.client.db(APPID_DB[doc.application.app_id]);
-  var collection = db.collection(coll);
   var _this = this;
+  var db = _this.client.db(APPID_DB[doc.application.app_id]);
+  var collection = db.collection(coll);
   collection.insertOne(doc, function(err, result) {
     if (err) {
       _this.log.info(util.format("Error inserting document: %s", err.message));
