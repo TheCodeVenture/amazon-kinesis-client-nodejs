@@ -16,16 +16,18 @@ function DB() {
 
 DB.prototype.connect = function(uri, callback) {
   this.log.info(util.format("About to connect to DB"));
+  var _this = this;
   if (this.db != "empty") {
     callback();
     this.log.info("Already connected to database.");
   } else {
-    var _this = this;
     MongoClient.connect(uri, function(err, client) {
+      console.log("err", err);
       if (err) {
         _this.log.info(util.format("Error connecting to DB: %s", err.message));
         callback(err);
       } else {
+        console.log("HERE????");
         console.log(
           "DATABASE_PER_ENV[process.env.NODE_ENV]",
           DATABASE_PER_ENV[process.env.NODE_ENV]
