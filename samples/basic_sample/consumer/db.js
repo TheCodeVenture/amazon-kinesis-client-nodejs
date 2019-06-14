@@ -46,8 +46,8 @@ DB.prototype.close = function(callback) {
 };
 
 DB.prototype.addDocument = function(coll, doc, callback) {
+  var collection = this.db.collection(coll);
   var _this = this;
-  var collection = _this.db.collection(coll);
   collection.insertOne(doc, function(err, result) {
     console.log("err", err);
     if (err) {
