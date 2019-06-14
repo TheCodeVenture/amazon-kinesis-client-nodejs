@@ -22,16 +22,10 @@ DB.prototype.connect = function(uri, callback) {
     this.log.info("Already connected to database.");
   } else {
     MongoClient.connect(uri, function(err, client) {
-      console.log("err", err);
       if (err) {
         _this.log.info(util.format("Error connecting to DB: %s", err.message));
         callback(err);
       } else {
-        console.log("HERE????");
-        console.log(
-          "DATABASE_PER_ENV[process.env.NODE_ENV]",
-          DATABASE_PER_ENV[process.env.NODE_ENV]
-        );
         _this.db = client.db(DATABASE_PER_ENV[process.env.NODE_ENV]);
         _this.log.info(util.format("Connected to database."));
         callback();
@@ -51,7 +45,6 @@ DB.prototype.addDocument = function(coll, doc, callback) {
   var collection = this.db.collection(coll);
   var _this = this;
   collection.insertOne(doc, function(err, result) {
-    console.log("err", err);
     if (err) {
       _this.log.info(util.format("Error inserting document: %s", err.message));
       callback(err.message);
